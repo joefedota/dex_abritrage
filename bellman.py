@@ -102,4 +102,4 @@ class NegativeWeightFinder:
             self.seen_nodes.add(prior_node)
         
 def last_index_in_list(lst, element):
-    next(i for i in reversed(range(len(lst))) if lst[i] == element)
+    return len(lst) - next(i for i, v in enumerate(reversed(lst), 1) if v == element)

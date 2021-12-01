@@ -1,5 +1,5 @@
 import networkx as nx
-from .bellman import NegativeWeightFinder
+from bellman import NegativeWeightFinder
 
 class NegativeWeightFinderMulti(NegativeWeightFinder):
 
@@ -11,8 +11,8 @@ class NegativeWeightFinderMulti(NegativeWeightFinder):
         self.initialize(source)
 
         # on first iteration, load market prices.
-        self._first_iteration()
-
+        #replace with create new DiGraph, finds all edges for given pair, and adds cheapest to digraph
+        self.create_digraph()
         # After len(graph) - 1 passes, algorithm is complete.
         for i in range(1, len(self.graph) - 1):
             for edge in self.new_graph.edges(data=True):
@@ -27,6 +27,17 @@ class NegativeWeightFinderMulti(NegativeWeightFinder):
                     continue
                 yield path
     
+    def create_digraph(self):
+        bunches = {}
+        for node_tup, weight in nx.get_edge_attributes(self.graph,'weight').items():
+            tpl = (node_tup[0], node_tup[1])
+            if tpl in bunches:
+                bunches[tpl].append(weight)
+            else:
+                bunches[tpl] = [weight]
+        for node_tup, weight_list in bunches.items():
+            self.new_graph.add_edge(node_tup[0], node_tup[1], weight=min(weight_list))
+    '''
     def _first_iteration(self):
         """
         On the first iteration, finds the least-weighted edge between in each edge bunch in self.graph and creates
@@ -34,6 +45,7 @@ class NegativeWeightFinderMulti(NegativeWeightFinder):
         is why in bellman_ford, there are only len(self.graph) - 1 iterations of relaxing the edges. (The first
         iteration is completed in the method.)
         """
+        # replace graph.edge_bunches with a function 
         [self._process_edge_bunch(edge_bunch) for edge_bunch in self.graph.edge_bunches(data=True)]
 
     def _process_edge_bunch(self, edge_bunch):
@@ -65,7 +77,7 @@ def get_least_edge_in_bunch(edge_bunch, weight='weight'):
             least = data
 
     return least
-
+'''
 
 def bellman_ford_multi(graph: nx.MultiGraph, source, unique_paths=True):
     """
