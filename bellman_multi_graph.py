@@ -87,3 +87,12 @@ def bellman_ford_multi(graph: nx.MultiGraph, source, unique_paths=True):
     finder = NegativeWeightFinderMulti(graph)
     paths = finder.bellman_ford(source, unique_paths)
     return finder.new_graph, paths
+
+def bellman_ford_multi_speedup(graph: nx.MultiGraph, source, unique_paths=True):
+    """
+    Returns a 2-tuple containing the graph with most negative weights in every edge bunch and a generator which iterates
+    over the negative cycle in graph
+    """
+    finder = NegativeWeightFinderMulti(graph)
+    paths = finder.bellman_ford_randomized_speedup(source, unique_paths)
+    return finder.new_graph, paths

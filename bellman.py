@@ -130,7 +130,7 @@ class NegativeWeightFinder:
             # edge (u, v) where v holds a greater node value than u
             # only if u is in the changed list, or D[v] has been changed
             # since the start of the iteration
-            for i in range(self.graph.num_of_nodes()):
+            for i in range(self.graph.number_of_nodes()):
                 u = value_nodes[i]
                 u_value = node_values[u]
                 for v in self.graph[u]:
