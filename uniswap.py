@@ -6,44 +6,52 @@ def uni_sushi_swap(endpoint):
     #endpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
     headers = {}
     #need to increment skip in order to get more than first 1000 pairs
-    query = """{
-    pairs(first: 1000, orderBy: reserveUSD, orderDirection: desc) {
-        id
-    }
-    }"""
-
-    r = requests.post(endpoint, json={"query": query}, headers=headers)
-
-    data_json = json.loads(r.text)["data"]
-    #print(data_json)
-    #print(len(data_json))
-    data = data_json['pairs']
+    skip = 0
     tuples = []
-    for pair in data:
+    seen = set()
+    while True:
+        print(skip)
         query = """{
-    pair(id: \"""" + pair['id'] + """\"){
-        token0 {
-        id
-        symbol
-        name
-        derivedETH
-        }
-        token1 {
-        id
-        symbol
-        name
-        derivedETH
-        }
-        token0Price
-        token1Price
-    }
-    }"""
+        pairs(first: 1000, skip: """ + str(skip) + """, orderBy: reserveUSD, orderDirection: desc) {
+            id
+            token0 {
+                id
+                symbol
+                name
+                derivedETH
+            }
+            token1 {
+                id
+                symbol
+                name
+                derivedETH
+            }
+            token0Price
+            token1Price
+            }
+        }"""
         r = requests.post(endpoint, json={"query": query}, headers=headers)
         dic = json.loads(r.text)
-        if endpoint == "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2":
-            tuples.append((dic['data']['pair']['token0']['symbol'], dic['data']['pair']['token1']['symbol'], dic['data']['pair']['token0Price'], dic['data']['pair']['token1Price'], "uni"))
+        #print(dic['data']['pairs'])
+        if 'data' in dic:
+            if len(dic['data']) == 0:
+                break
+            for pair in dic['data']['pairs']:
+                if endpoint == "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2":
+                    if (pair['token0']['symbol'], pair['token1']['symbol']) not in seen:
+                        #some checks to eliminate any bogus data from the API calls
+                        if pair['token0Price'] != '0' and pair['token1Price'] != '0' and pair['token0Price'] != pair['token1Price']:
+                            tuples.append((pair['token0']['symbol'], pair['token1']['symbol'], pair['token0Price'], pair['token1Price'], "uni"))
+                        seen.add((pair['token0']['symbol'], pair['token1']['symbol']))  
+                else:
+                    if (pair['token0']['symbol'], pair['token1']['symbol']) not in seen:
+                        if pair['token0Price'] != '0' and pair['token1Price'] != '0' and pair['token0Price'] != pair['token1Price']:
+                            tuples.append((pair['token0']['symbol'], pair['token1']['symbol'], pair['token0Price'], pair['token1Price'], "sushi"))
+                        seen.add((pair['token0']['symbol'], pair['token1']['symbol']))
         else:
-            tuples.append((dic['data']['pair']['token0']['symbol'], dic['data']['pair']['token1']['symbol'], dic['data']['pair']['token0Price'], dic['data']['pair']['token1Price'], "sushi"))
+            break
+        skip += 1000
+
     if endpoint == "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2":
         write_market_state(tuples, "uni.pkl")
     else:
@@ -79,6 +87,51 @@ def dydx():
         tups.append((mkt['baseAsset'], mkt['quoteAsset'], priceA, 1/priceA, "dydx"))
     write_market_state(tups, "dydx.pkl")
     return tups
+
+def univ3():
+    endpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3"
+    headers = {}
+    tuples = []
+    skip = 0
+    seen = set()
+    while True:
+        print(skip)
+        query = """{
+        pools(first: 1000, skip: """ + str(skip) + """) {
+            id
+            token0 {
+                id
+                symbol
+                name
+                derivedETH
+            }
+            token1 {
+                id
+                symbol
+                name
+                derivedETH
+            }
+            token0Price
+            token1Price
+            }
+        }"""
+        r = requests.post(endpoint, json={"query": query}, headers=headers)
+        dic = json.loads(r.text)
+        #print(dic['data']['pairs'])
+        if 'data' in dic:
+            if len(dic['data']) == 0:
+                break
+            for pair in dic['data']['pools']:
+                if (pair['token0']['symbol'], pair['token1']['symbol']) not in seen:
+                    if pair['token0Price'] != '0' and pair['token1Price'] != '0' and pair['token0Price'] != pair['token1Price']:
+                        tuples.append((pair['token0']['symbol'], pair['token1']['symbol'], pair['token0Price'], pair['token1Price'], "univ3"))
+                    seen.add((pair['token0']['symbol'], pair['token1']['symbol']))
+        else:
+            break
+        skip += 1000
+    write_market_state(tuples, "univ3.pkl")
+    return tuples
+
 
 def write_market_state(tups, name):
     open_file = open(name, "wb")

@@ -12,7 +12,7 @@ def calc_profit(g, path):
         to += 1
     return ratio
 
-multi_graph = construct_graph(2, load_state=True)
+multi_graph = construct_graph(5, load_state=False)
 g, paths = bellman_ford_multi(multi_graph, "WETH", unique_paths=True)
 paths = list(paths)
 for path in paths:
