@@ -43,38 +43,38 @@ def construct_graph(num_networks, load_state=False):
             graph.add_node(tup[0])
         if not graph.__contains__(tup[1]):
             graph.add_node(tup[1])
-        graph.add_edge(tup[0], tup[1], weight=(log(float(tup[3]))*(-1)))
-        graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)))
+        graph.add_edge(tup[0], tup[1], weight=(log(float(tup[3]))*(-1)), market=tup[4])
+        graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)), market=tup[4])
     for tup in uni_tups:
         if not graph.__contains__(tup[0]):
             graph.add_node(tup[0])
         if not graph.__contains__(tup[1]):
             graph.add_node(tup[1])
-        graph.add_edge(tup[0], tup[1], weight=log(float(tup[3]))*(-1))
-        graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)))
+        graph.add_edge(tup[0], tup[1], weight=log(float(tup[3]))*(-1), market=tup[4])
+        graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)), market=tup[4])
     if num_networks > 2:
         for tup in dydx_tups:
             if not graph.__contains__(tup[0]):
                 graph.add_node(tup[0])
             if not graph.__contains__(tup[1]):
                 graph.add_node(tup[1])
-            graph.add_edge(tup[0], tup[1], weight=(log(float(tup[2]))*(-1)))
-            graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)))
+            graph.add_edge(tup[0], tup[1], weight=(log(float(tup[2]))*(-1)), market=tup[4])
+            graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)), market=tup[4])
     if num_networks > 3:
         for tup in kyber_tups:
             if not graph.__contains__(tup[0]):
                 graph.add_node(tup[0])
             if not graph.__contains__(tup[1]):
                 graph.add_node(tup[1])
-            graph.add_edge(tup[0], tup[1], weight=(log(float(tup[2]))*(-1)))
-            graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)))
+            graph.add_edge(tup[0], tup[1], weight=(log(float(tup[2]))*(-1)), market=tup[4])
+            graph.add_edge(tup[1], tup[0], weight=(log(float(tup[2]))*(-1)), market=tup[4])
     #pass the original value for the prices into the graph then have jakes 
     # algo convert to negative logs in flight, that way can traverse the 
     #discovered path to find profit
     return graph
 '''
-g = construct_graph(4, load_state=True)
-wts = nx.get_edge_attributes(g,'weight')
+g = construct_graph(4, load_state=False)
+wts = g.edges.data()
 open_file = open("wts.txt", "w")
 open_file.write(wts.__str__())
 open_file.close()'''

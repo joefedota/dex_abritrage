@@ -40,8 +40,10 @@ def uni_sushi_swap(endpoint):
     }"""
         r = requests.post(endpoint, json={"query": query}, headers=headers)
         dic = json.loads(r.text)
-        tuples.append((dic['data']['pair']['token0']['symbol'], dic['data']['pair']['token1']['symbol'], dic['data']['pair']['token0Price'], dic['data']['pair']['token1Price']))
-
+        if endpoint == "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2":
+            tuples.append((dic['data']['pair']['token0']['symbol'], dic['data']['pair']['token1']['symbol'], dic['data']['pair']['token0Price'], dic['data']['pair']['token1Price'], "uni"))
+        else:
+            tuples.append((dic['data']['pair']['token0']['symbol'], dic['data']['pair']['token1']['symbol'], dic['data']['pair']['token0Price'], dic['data']['pair']['token1Price'], "sushi"))
     if endpoint == "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2":
         write_market_state(tuples, "uni.pkl")
     else:
@@ -58,7 +60,7 @@ def kyber():
     for k, dic in data.items():
         priceB = float(dic['currentPrice'])
         if priceB:
-            tuples.append(('ETH', dic['symbol'], 1/priceB, priceB))
+            tuples.append(('ETH', dic['symbol'], 1/priceB, priceB, "kyber"))
     write_market_state(tuples, "kyber.pkl")
     return tuples
 
@@ -74,7 +76,7 @@ def dydx():
     tups = []
     for k, mkt in mkts.data['markets'].items():
         priceA = float(mkt['indexPrice'])
-        tups.append((mkt['baseAsset'], mkt['quoteAsset'], priceA, 1/priceA))
+        tups.append((mkt['baseAsset'], mkt['quoteAsset'], priceA, 1/priceA, "dydx"))
     write_market_state(tups, "dydx.pkl")
     return tups
 
